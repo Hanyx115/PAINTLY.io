@@ -70,4 +70,4 @@ Start the server with:
 
 ### `License`
 
-This License section provides a brief overview and directs users to the `LICENSE` file for detailed information.
+This is a brief overview and directs to the `LICENSE` file for detailed information.
