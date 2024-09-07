@@ -186,3 +186,95 @@ canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
+
+
+// Connect to the WebSocket server
+const socket = io();
+
+// Start drawing (client-side only)
+function startDrawing(e) {
+    isDrawing = true;
+    startX = e.clientX - canvas.offsetLeft;
+    startY = e.clientY - canvas.offsetTop;
+
+    if (shapeMode === 'free') {
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+    }
+}
+
+// Function to send drawing data to other clients
+function sendDrawingData(type, x1, y1, x2, y2, color, lineWidth, shapeMode, isFilled) {
+    const drawingData = {
+        type,
+        x1, y1, x2, y2, color, lineWidth, shapeMode, isFilled
+    };
+    socket.emit('drawing', drawingData);
+}
+
+// Draw shapes and freehand
+function draw(e) {
+    if (!isDrawing) return;
+
+    const currentX = e.clientX - canvas.offsetLeft;
+    const currentY = e.clientY - canvas.offsetTop;
+
+    ctx.globalAlpha = currentOpacity;
+
+    if (shapeMode === 'free') {
+        // Free drawing
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+
+        // Send free drawing data to server
+        sendDrawingData('free', startX, startY, currentX, currentY, ctx.strokeStyle, ctx.lineWidth, shapeMode, isFilled);
+    } else {
+        // Clear the canvas for drawing shapes
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Restore previous drawings from history
+        restoreHistory();
+
+        ctx.beginPath();
+
+        if (shapeMode === 'rect') {
+            drawRectangle(startX, startY, currentX - startX, currentY - startY);
+        } else if (shapeMode === 'circle') {
+            drawCircle(startX, startY, Math.hypot(currentX - startX, currentY - startY));
+        }
+
+        // Send shape data to server
+        sendDrawingData('shape', startX, startY, currentX, currentY, ctx.strokeStyle, ctx.lineWidth, shapeMode, isFilled);
+    }
+}
+
+// Listen for incoming drawing data from other clients
+socket.on('drawing', (data) => {
+    const { type, x1, y1, x2, y2, color, lineWidth, shapeMode, isFilled } = data;
+
+    // Set drawing properties
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+
+    if (type === 'free') {
+        // Free drawing
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    } else if (type === 'shape') {
+        // Drawing shapes
+        if (shapeMode === 'rect') {
+            ctx.rect(x1, y1, x2 - x1, y2 - y1);
+        } else if (shapeMode === 'circle') {
+            ctx.arc(x1, y1, Math.hypot(x2 - x1, y2 - y1), 0, Math.PI * 2);
+        }
+        isFilled ? ctx.fill() : ctx.stroke();
+    }
+});
+
+// Event listeners for drawing actions
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseout', stopDrawing);
