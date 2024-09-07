@@ -19,3 +19,19 @@ This project is a drawing application that allows users to draw on a canvas with
 
 ## Project Structure
 
+### `/public/index.html`
+
+The main HTML file that includes the canvas element and links to the CSS and JavaScript files.
+
+### `/public/style.css`
+
+CSS file for styling the canvas and other UI elements.
+
+### `/public/script.js`
+
+JavaScript file handling the drawing logic, real-time updates, and interaction with the Socket.io server.
+
+### `server.js`
+
+Node.js server setup for handling WebSocket connections using Socket.io.
+
