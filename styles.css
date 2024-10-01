@@ -5,7 +5,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f0f0f0;
+    background-color: #fc0000;
 }
 
 .toolbar {
@@ -20,6 +20,7 @@ body {
 }
 
 #drawCanvas {
+    background-color: #ccc;
     border: 1px solid #ccc;
     cursor: crosshair;
 }
